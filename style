@@ -1,84 +1,102 @@
 body {
-      margin: 0;
-      background: black;
-      color: white;
-      font-family: 'Arial';
-    }
-    canvas {
-      display: block;
-    }
-    #settingsBtn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #333;
-      color: white;
-      border: none;
-      padding: 10px;
-      cursor: pointer;
-      z-index: 10;
-    }
-    #settingsPanel {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 20;
-    }
+    margin: 0;
+    background: black;
+    color: white;
+    font-family: 'Arial';
+  }
+
+  canvas {
+    display: block;
+  }
+
+  #settingsBtn, #breakdownBtn {
+    position: absolute;
+    right: 10px;
+    background: #333;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 10;
+    font-size: 16px;
+    border-radius: 6px;
+  }
+
+  #settingsBtn {
+    top: 10px;
+  }
+
+  #breakdownBtn {
+    top: 60px;
+    background: #444;
+  }
+
+  #settingsPanel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    padding: 20px;
+  }
+
+  #settingsPanel input, #settingsPanel button {
+    margin: 8px 0;
+    padding: 12px;
+    font-size: 16px;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 6px;
+    box-sizing: border-box;
+  }
+
+  #breakdownPanel {
+    display: none;
+    position: fixed;
+    top: 10vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80vw;
+    max-width: 600px;
+    background: #111;
+    color: white;
+    padding: 4vh 4vw;
+    z-index: 999;
+    border: 2px solid #444;
+    border-radius: 10px;
+    box-shadow: 0 0 20px #000;
+    text-align: center;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #breakdownPanel button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #666;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  #breakdownContent {
+    font-size: 20px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
     #settingsPanel input, #settingsPanel button {
-      margin: 5px;
-      padding: 10px;
-      font-size: 16px;
+      font-size: 14px;
     }
-    @media (max-width: 768px) {
-      text {
-        font-size: 16px !important;
-      }
+    #breakdownContent {
+      font-size: 18px;
     }
-    #breakdownBtn {
-  position: absolute;
-  top: 60px;
-  right: 10px;
-  background: #444;
-  color: white;
-  border: none;
-  padding: 10px;
-  cursor: pointer;
-  z-index: 10;
-}
-
-#breakdownPanel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.95);
-  color: white;
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 30;
-  text-align: center;
-}
-
-#breakdownPanel button {
-  margin-top: 20px;
-  padding: 10px;
-  background: #666;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-#breakdownContent {
-  font-size: 20px;
-  line-height: 1.6;
-}
+  }
