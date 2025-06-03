@@ -5,13 +5,8 @@
   <title>Income Visualizer</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
   <link rel="stylesheet" href="style.css">
-  <style>
-    
-
-  </style>
 </head>
 <body>
-
 
 <button id="settingsBtn">⚙️ Settings</button>
 <button id="breakdownBtn">📈 Earnings Breakdown</button>
@@ -28,23 +23,18 @@
   <button onclick="applySettings()">Update</button>
   <button onclick="closeSettings()">Close</button>
   <button onclick="resetSettings()">Reset Settings</button>
-
 </div>
 
-<!-- ... your existing HTML and CSS remain unchanged ... -->
-
 <script>
-
 let coins = [];
 let confetti = [];
 
 let passiveMonthly = 0;
 let activeMonthly = 0;
 
-
 let passiveEarnings = 0;
 let activeEarnings = 0;
-let extraIncome = 0; // 🔥 NEW: cumulative extra income
+let extraIncome = 0;
 let totalNetWorth = 0;
 
 let lastPassiveMilestone = 0;
@@ -52,14 +42,12 @@ let lastActiveMilestone = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  
 
-  loadStoredSettings(); // 👈 Add this
+  loadStoredSettings();
   calculateEarningsSoFar();
 
   setInterval(() => {
     updateEarnings();
-   
     vibrate();
     coins.push(new Coin(width * 0.25, 0, 'gold'));
     coins.push(new Coin(width * 0.75, 0, 'silver'));
@@ -81,7 +69,7 @@ function calculateEarningsSoFar() {
 
   passiveEarnings = passivePerSecond * secondsSinceStartOfMonth;
   activeEarnings = activePerSecond * secondsSinceStartOfMonth;
-  totalNetWorth = passiveEarnings + activeEarnings + extraIncome; // ✅ includes extra
+  totalNetWorth = passiveEarnings + activeEarnings + extraIncome;
 }
 
 function updateEarnings() {
@@ -90,7 +78,7 @@ function updateEarnings() {
 
   passiveEarnings += passivePerSecond;
   activeEarnings += activePerSecond;
-  totalNetWorth = passiveEarnings + activeEarnings + extraIncome; // ✅ includes extra
+  totalNetWorth = passiveEarnings + activeEarnings + extraIncome;
 }
 
 function checkMilestones() {
@@ -226,8 +214,6 @@ function launchConfetti(centerX) {
   }
 }
 
-
-
 function vibrate() {
   if ("vibrate" in navigator) {
     navigator.vibrate(50);
@@ -266,12 +252,10 @@ function resetSettings() {
   localStorage.removeItem("roi");
   localStorage.removeItem("extraIncome");
 
-  // Reset variables
   activeMonthly = 0;
   passiveMonthly = 0;
   extraIncome = 0;
 
-  // Reset UI inputs
   document.getElementById("salaryInput").value = "";
   document.getElementById("investmentInput").value = "";
   document.getElementById("roiInput").value = "";
@@ -279,7 +263,6 @@ function resetSettings() {
 
   calculateEarningsSoFar();
 }
-
 
 function closeSettings() {
   document.getElementById("settingsPanel").style.display = "none";
@@ -308,7 +291,7 @@ function updateBreakdown() {
   const todayTotal = todayPassive + todayActive;
 
   const projectedMonthly = passiveMonthly + activeMonthly;
-  
+
   const totalEarned = passiveEarnings + activeEarnings;
   const passivePercent = (passiveEarnings / totalEarned) * 100;
   const activePercent = (activeEarnings / totalEarned) * 100;
@@ -316,7 +299,6 @@ function updateBreakdown() {
   document.getElementById("breakdownContent").innerHTML = `
     <div><strong>📅 Today’s Income:</strong> ₦${todayTotal.toFixed(2)} (₦${todayPassive.toFixed(2)} passive, ₦${todayActive.toFixed(2)} active)</div>
     <div><strong>📆 Monthly Projection:</strong> ₦${projectedMonthly.toFixed(2)}</div>
-    
     <div><strong>⚖️ Passive:</strong> ${passivePercent.toFixed(1)}% | <strong>Active:</strong> ${activePercent.toFixed(1)}%</div>
   `;
 }
@@ -343,8 +325,6 @@ function loadStoredSettings() {
     document.getElementById("bonusInput").value = storedBonus;
   }
 }
-
-
 </script>
 
 </body>
