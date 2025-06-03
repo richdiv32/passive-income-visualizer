@@ -10,9 +10,8 @@
 
   </style>
 </head>
-<body style="background: black;">
+<body>
 
-<!-- <audio id="coinSound" preload="auto" src="coin.mp3"></audio> -->
 
 <button id="settingsBtn">⚙️ Settings</button>
 <button id="breakdownBtn">📈 Earnings Breakdown</button>
@@ -35,7 +34,7 @@
 <!-- ... your existing HTML and CSS remain unchanged ... -->
 
 <script>
-let coinSound;
+
 let coins = [];
 let confetti = [];
 
@@ -53,14 +52,14 @@ let lastActiveMilestone = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  coinSound = document.getElementById("coinSound");
+  
 
   loadStoredSettings(); // 👈 Add this
   calculateEarningsSoFar();
 
   setInterval(() => {
     updateEarnings();
-    playSound();
+   
     vibrate();
     coins.push(new Coin(width * 0.25, 0, 'gold'));
     coins.push(new Coin(width * 0.75, 0, 'silver'));
@@ -227,12 +226,7 @@ function launchConfetti(centerX) {
   }
 }
 
-function playSound() {
-  if (coinSound) {
-    coinSound.currentTime = 0;
-    coinSound.play();
-  }
-}
+
 
 function vibrate() {
   if ("vibrate" in navigator) {
