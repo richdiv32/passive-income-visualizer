@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Passive Income Visualizer</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: 'Arial';
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<audio id="coinSound" preload="auto" src="coin.mp3"></audio>
+
+<script>
+let earnings = 0;
+let incomePerSecond = 0;
+let coins = [];
+let coinSound;
+let isRunning = false;
+
+function setup() {
+  let cnv = createCanvas(windowWidth, windowHeight);
+  cnv.style('display', 'block');
+  coinSound = document.getElementById("coinSound");
+}
+
+function startVisualization() {
+  const investment = 110000; // ₦110,000
+  const rate = 20.54;        // 20.54% p.a
+
+  const annualEarnings = investment * (rate / 100);
+  incomePerSecond = annualEarnings / 31536000;
+
+  isRunning = true;
+
+  setInterval(() => {
+    if (!isRunning) return;
+    earnings += incomePerSecond;
+    coins.push(new Coin(width / 2, 0));
+    if (coinSound) {
+      coinSound.currentTime = 0;
+      coinSound.play();
+    }
+  }, 1000);
+}
+
+function draw() {
+  if (!isRunning) return;
+
+  background(0);
+
+  textAlign(CENTER, TOP);
+  textSize(32);
+  fill(255);
+  text(`₦${earnings.toFixed(6)}`, width / 2, 40);
+
+  for (let i = coins.length - 1; i >= 0; i--) {
+    coins[i].update();
+    coins[i].display();
+    if (coins[i].offScreen()) {
+      coins.splice(i, 1);
+    }
+  }
+}
+
+class Coin {
+  constructor(x, y) {
+    this.x = x + random(-100, 100);
+    this.y = y;
+    this.speed = random(2, 5);
+    this.alpha = 255;
+  }
+
+  update() {
+    this.y += this.speed;
+    this.alpha -= 2;
+  }
+
+  display() {
+    noStroke();
+    fill(255, 215, 0, this.alpha); // Gold color
+    ellipse(this.x, this.y, 20);
+  }
+
+  offScreen() {
+    return this.alpha <= 0;
+  }
+}
+
+window.onload = startVisualization;
+</script>
+
+</body>
+</html>
