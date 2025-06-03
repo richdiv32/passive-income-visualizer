@@ -2,66 +2,135 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Passive Income Visualizer</title>
+  <title>Income Visualizer</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+  <link rel="stylesheet" href="style.css">
   <style>
-    body {
-      margin: 0;
-      background: black;
-      color: white;
-      font-family: 'Arial';
-    }
-    canvas {
-      display: block;
-    }
+    
+
   </style>
 </head>
 <body>
 
 <audio id="coinSound" preload="auto" src="coin.mp3"></audio>
 
+<button id="settingsBtn">⚙️ Settings</button>
+<button id="breakdownBtn">📈 Earnings Breakdown</button>
+<div id="breakdownPanel">
+  <div id="breakdownContent"></div>
+  <button onclick="closeBreakdown()">Close</button>
+</div>
+
+<div id="settingsPanel">
+  <input id="salaryInput" type="number" placeholder="Monthly Salary (₦)">
+  <input id="investmentInput" type="number" placeholder="Passive Investment (₦)">
+  <input id="roiInput" type="number" placeholder="ROI (% per year)">
+  <input id="bonusInput" type="number" placeholder="+ One-Time Income (₦)">
+  <button onclick="applySettings()">Update</button>
+  <button onclick="closeSettings()">Close</button>
+  <button onclick="resetSettings()">Reset Settings</button>
+
+</div>
+
+<!-- ... your existing HTML and CSS remain unchanged ... -->
+
 <script>
-let earnings = 0;
-let incomePerSecond = 0;
-let coins = [];
 let coinSound;
-let isRunning = false;
+let coins = [];
+let confetti = [];
+
+let passiveMonthly = 0;
+let activeMonthly = 0;
+
+
+let passiveEarnings = 0;
+let activeEarnings = 0;
+let extraIncome = 0; // 🔥 NEW: cumulative extra income
+let totalNetWorth = 0;
+
+let lastPassiveMilestone = 0;
+let lastActiveMilestone = 0;
 
 function setup() {
-  let cnv = createCanvas(windowWidth, windowHeight);
-  cnv.style('display', 'block');
+  createCanvas(windowWidth, windowHeight);
   coinSound = document.getElementById("coinSound");
-}
 
-function startVisualization() {
-  const investment = 110000; // ₦110,000
-  const rate = 20.54;        // 20.54% p.a
-
-  const annualEarnings = investment * (rate / 100);
-  incomePerSecond = annualEarnings / 31536000;
-
-  isRunning = true;
+  loadStoredSettings(); // 👈 Add this
+  calculateEarningsSoFar();
 
   setInterval(() => {
-    if (!isRunning) return;
-    earnings += incomePerSecond;
-    coins.push(new Coin(width / 2, 0));
-    if (coinSound) {
-      coinSound.currentTime = 0;
-      coinSound.play();
-    }
+    updateEarnings();
+    playSound();
+    vibrate();
+    coins.push(new Coin(width * 0.25, 0, 'gold'));
+    coins.push(new Coin(width * 0.75, 0, 'silver'));
+    checkMilestones();
   }, 1000);
+
+  document.getElementById("settingsBtn").onclick = () => {
+    document.getElementById("settingsPanel").style.display = "flex";
+  };
+}
+
+function calculateEarningsSoFar() {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const secondsSinceStartOfMonth = (now - startOfMonth) / 1000;
+
+  const passivePerSecond = passiveMonthly / (30 * 24 * 60 * 60);
+  const activePerSecond = activeMonthly / (30 * 24 * 60 * 60);
+
+  passiveEarnings = passivePerSecond * secondsSinceStartOfMonth;
+  activeEarnings = activePerSecond * secondsSinceStartOfMonth;
+  totalNetWorth = passiveEarnings + activeEarnings + extraIncome; // ✅ includes extra
+}
+
+function updateEarnings() {
+  const passivePerSecond = passiveMonthly / (30 * 24 * 60 * 60);
+  const activePerSecond = activeMonthly / (30 * 24 * 60 * 60);
+
+  passiveEarnings += passivePerSecond;
+  activeEarnings += activePerSecond;
+  totalNetWorth = passiveEarnings + activeEarnings + extraIncome; // ✅ includes extra
+}
+
+function checkMilestones() {
+  if (passiveEarnings - lastPassiveMilestone >= 10000) {
+    lastPassiveMilestone = passiveEarnings;
+    launchConfetti(width * 0.25);
+  }
+  if (activeEarnings - lastActiveMilestone >= 50000) {
+    lastActiveMilestone = activeEarnings;
+    launchConfetti(width * 0.75);
+  }
 }
 
 function draw() {
-  if (!isRunning) return;
-
   background(0);
 
-  textAlign(CENTER, TOP);
-  textSize(32);
+  stroke(50);
+  strokeWeight(2);
+  line(width / 2, 0, width / 2, height);
+
+  noStroke();
   fill(255);
-  text(`₦${earnings.toFixed(6)}`, width / 2, 40);
+  textAlign(CENTER, TOP);
+
+  let baseFont = width < 500 ? 16 : 20;
+  textSize(baseFont);
+  text(`DAY ${new Date().getDate()} OF ${new Date().toLocaleString('default', { month: 'long' })}`.toUpperCase(), width / 2, 10);
+
+  textSize(baseFont + 4);
+  text("PASSIVE INCOME", width * 0.25, 40);
+  text(`₦${passiveEarnings.toFixed(2)}`, width * 0.25, 70);
+
+  text("ACTIVE INCOME", width * 0.75, 40);
+  text(`₦${activeEarnings.toFixed(2)}`, width * 0.75, 70);
+
+  textSize(baseFont + 8);
+  text(`TOTAL: ₦${totalNetWorth.toFixed(2)}`, width / 2, height - 60);
+
+  drawBars();
 
   for (let i = coins.length - 1; i >= 0; i--) {
     coins[i].update();
@@ -70,14 +139,40 @@ function draw() {
       coins.splice(i, 1);
     }
   }
+
+  for (let i = confetti.length - 1; i >= 0; i--) {
+    confetti[i].update();
+    confetti[i].display();
+    if (confetti[i].offScreen()) {
+      confetti.splice(i, 1);
+    }
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
+function drawBars() {
+  const maxBarHeight = 200;
+  const barWidth = 40;
+  const passiveBarHeight = map(passiveEarnings, 0, activeEarnings, 0, maxBarHeight);
+  const activeBarHeight = map(activeEarnings, 0, activeEarnings, 0, maxBarHeight);
+
+  fill(255, 215, 0);
+  rect(width * 0.25 - barWidth / 2, height - 80 - passiveBarHeight, barWidth, passiveBarHeight);
+
+  fill(180);
+  rect(width * 0.75 - barWidth / 2, height - 80 - activeBarHeight, barWidth, activeBarHeight);
 }
 
 class Coin {
-  constructor(x, y) {
-    this.x = x + random(-100, 100);
+  constructor(x, y, type) {
+    this.x = x + random(-30, 30);
     this.y = y;
     this.speed = random(2, 5);
     this.alpha = 255;
+    this.type = type;
   }
 
   update() {
@@ -87,7 +182,11 @@ class Coin {
 
   display() {
     noStroke();
-    fill(255, 215, 0, this.alpha); // Gold color
+    if (this.type === 'gold') {
+      fill(255, 215, 0, this.alpha);
+    } else {
+      fill(180, 180, 180, this.alpha);
+    }
     ellipse(this.x, this.y, 20);
   }
 
@@ -96,7 +195,162 @@ class Coin {
   }
 }
 
-window.onload = startVisualization;
+class Confetti {
+  constructor(x, y) {
+    this.x = x + random(-50, 50);
+    this.y = y;
+    this.speed = random(1, 4);
+    this.size = random(4, 10);
+    this.color = color(random(255), random(255), random(255));
+    this.alpha = 255;
+  }
+
+  update() {
+    this.y += this.speed;
+    this.alpha -= 3;
+  }
+
+  display() {
+    noStroke();
+    fill(this.color.levels[0], this.color.levels[1], this.color.levels[2], this.alpha);
+    ellipse(this.x, this.y, this.size);
+  }
+
+  offScreen() {
+    return this.alpha <= 0;
+  }
+}
+
+function launchConfetti(centerX) {
+  for (let i = 0; i < 30; i++) {
+    confetti.push(new Confetti(centerX, 0));
+  }
+}
+
+function playSound() {
+  if (coinSound) {
+    coinSound.currentTime = 0;
+    coinSound.play();
+  }
+}
+
+function vibrate() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate(50);
+  }
+}
+
+function applySettings() {
+  const salary = parseFloat(document.getElementById("salaryInput").value);
+  const investment = parseFloat(document.getElementById("investmentInput").value);
+  const roi = parseFloat(document.getElementById("roiInput").value);
+  const bonus = parseFloat(document.getElementById("bonusInput").value);
+
+  if (!isNaN(salary)) {
+    activeMonthly = salary;
+    localStorage.setItem("activeMonthly", salary);
+  }
+
+  if (!isNaN(investment) && !isNaN(roi)) {
+    passiveMonthly = (investment * roi / 100) / 12;
+    localStorage.setItem("investment", investment);
+    localStorage.setItem("roi", roi);
+  }
+
+  if (!isNaN(bonus)) {
+    extraIncome += bonus;
+    localStorage.setItem("extraIncome", extraIncome);
+  }
+
+  calculateEarningsSoFar();
+  closeSettings();
+}
+
+function resetSettings() {
+  localStorage.removeItem("activeMonthly");
+  localStorage.removeItem("investment");
+  localStorage.removeItem("roi");
+  localStorage.removeItem("extraIncome");
+
+  // Reset variables
+  activeMonthly = 0;
+  passiveMonthly = 0;
+  extraIncome = 0;
+
+  // Reset UI inputs
+  document.getElementById("salaryInput").value = "";
+  document.getElementById("investmentInput").value = "";
+  document.getElementById("roiInput").value = "";
+  document.getElementById("bonusInput").value = "";
+
+  calculateEarningsSoFar();
+}
+
+
+function closeSettings() {
+  document.getElementById("settingsPanel").style.display = "none";
+}
+
+document.getElementById("breakdownBtn").onclick = () => {
+  updateBreakdown();
+  document.getElementById("breakdownPanel").style.display = "flex";
+};
+
+function closeBreakdown() {
+  document.getElementById("breakdownPanel").style.display = "none";
+}
+
+function updateBreakdown() {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const secondsToday = (now - startOfDay) / 1000;
+  const secondsPerMonth = 30 * 24 * 60 * 60;
+
+  const passivePerSec = passiveMonthly / secondsPerMonth;
+  const activePerSec = activeMonthly / secondsPerMonth;
+
+  const todayPassive = passivePerSec * secondsToday;
+  const todayActive = activePerSec * secondsToday;
+  const todayTotal = todayPassive + todayActive;
+
+  const projectedMonthly = passiveMonthly + activeMonthly;
+  
+  const totalEarned = passiveEarnings + activeEarnings;
+  const passivePercent = (passiveEarnings / totalEarned) * 100;
+  const activePercent = (activeEarnings / totalEarned) * 100;
+
+  document.getElementById("breakdownContent").innerHTML = `
+    <div><strong>📅 Today’s Income:</strong> ₦${todayTotal.toFixed(2)} (₦${todayPassive.toFixed(2)} passive, ₦${todayActive.toFixed(2)} active)</div>
+    <div><strong>📆 Monthly Projection:</strong> ₦${projectedMonthly.toFixed(2)}</div>
+    
+    <div><strong>⚖️ Passive:</strong> ${passivePercent.toFixed(1)}% | <strong>Active:</strong> ${activePercent.toFixed(1)}%</div>
+  `;
+}
+
+function loadStoredSettings() {
+  const storedSalary = parseFloat(localStorage.getItem("activeMonthly"));
+  const storedInvestment = parseFloat(localStorage.getItem("investment"));
+  const storedROI = parseFloat(localStorage.getItem("roi"));
+  const storedBonus = parseFloat(localStorage.getItem("extraIncome"));
+
+  if (!isNaN(storedSalary)) {
+    activeMonthly = storedSalary;
+    document.getElementById("salaryInput").value = storedSalary;
+  }
+
+  if (!isNaN(storedInvestment) && !isNaN(storedROI)) {
+    passiveMonthly = (storedInvestment * storedROI / 100) / 12;
+    document.getElementById("investmentInput").value = storedInvestment;
+    document.getElementById("roiInput").value = storedROI;
+  }
+
+  if (!isNaN(storedBonus)) {
+    extraIncome = storedBonus;
+    document.getElementById("bonusInput").value = storedBonus;
+  }
+}
+
+
 </script>
 
 </body>
